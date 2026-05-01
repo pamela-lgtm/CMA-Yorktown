@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>613 Yorktown Drive — Rental Pricing Analysis | Verandah Properties</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bark: #3B2F20;
+    --bark-2: #5a4535;
+    --moss: #4A6741;
+    --moss-pale: #edf3ec;
+    --leaf: #7aaa6e;
+    --canopy: #2d4a28;
+    --gold: #C49A3C;
+    --gold-pale: #fdf6e8;
+    --gold-light: #f0d080;
+    --sand: #F5F0E8;
+    --sand-2: #EDE5D8;
+    --parchment: #FAF7F2;
+    --ink: #1e1810;
+    --text-2: #3d3025;
+    --text-3: #8a7a65;
+    --border: #D8CEBC;
+    --card: #ffffff;
+    --red: #8a2c2c;
+    --red-pale: #fdf0f0;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  body { font-family: var(--sans); background: var(--sand); color: var(--ink); font-size: 15px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+
+  /* HEADER — editorial, warm, canopy-inspired */
+  .header {
+    background: var(--canopy);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .header-texture {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 30%, rgba(122,170,110,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 20% 80%, rgba(196,154,60,0.08) 0%, transparent 60%),
+      repeating-linear-gradient(105deg, transparent 0, transparent 40px, rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px);
+  }
+  .header-inner { max-width: 940px; margin: 0 auto; padding: 3rem 2rem 2.5rem; position: relative; z-index: 1; width: 100%; }
+  .eyebrow { font-size: 10px; font-weight: 500; letter-spacing: .25em; text-transform: uppercase; color: var(--leaf); margin-bottom: .7rem; }
+  .header h1 { font-family: var(--serif); font-size: 38px; font-weight: 400; color: #fff; line-height: 1.1; margin-bottom: .4rem; font-style: italic; }
+  .header-sub { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 1.5rem; }
+  .pills { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pill { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); border-radius: 3px; padding: 4px 12px; font-size: 11px; color: rgba(255,255,255,0.78); letter-spacing: .02em; }
+  .pill.feature { background: rgba(122,170,110,0.18); border-color: rgba(122,170,110,0.35); color: #b8e0b0; font-weight: 500; }
+  .pill.gold { background: rgba(196,154,60,0.18); border-color: rgba(196,154,60,0.35); color: var(--gold-light); }
+
+  /* PRICE STRIP */
+  .price-strip { background: var(--gold); display: flex; }
+  .price-strip-inner { max-width: 940px; margin: 0 auto; padding: .8rem 2rem; display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; width: 100%; }
+  .ps-item { display: flex; flex-direction: column; }
+  .ps-label { font-size: 9px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: rgba(0,0,0,0.45); margin-bottom: 1px; }
+  .ps-val { font-family: var(--serif); font-size: 26px; color: var(--bark); line-height: 1; }
+  .ps-div { width: 1px; background: rgba(0,0,0,0.15); height: 36px; }
+  .ps-note { font-size: 12px; color: rgba(0,0,0,0.55); font-weight: 400; max-width: 360px; }
+
+  /* STRATEGY BAR */
+  .strat-bar { background: var(--bark); padding: .65rem 2rem; }
+  .strat-bar-inner { max-width: 940px; margin: 0 auto; font-size: 12px; color: rgba(255,255,255,0.8); font-weight: 400; }
+  .strat-bar-inner strong { color: var(--gold-light); font-weight: 600; }
+
+  /* MAIN */
+  .main { max-width: 940px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+  .section { margin-bottom: 3rem; }
+  .section-label { font-size: 9px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--moss); margin-bottom: .9rem; padding-bottom: .4rem; border-bottom: 1.5px solid var(--sand-2); display: flex; align-items: center; gap: .6rem; }
+  .section-label::before { content: ''; width: 20px; height: 2px; background: var(--gold); flex-shrink: 0; }
+
+  /* SNAPSHOT GRID */
+  .snapshot { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden; }
+  @media(max-width:620px){ .snapshot { grid-template-columns: 1fr 1fr; } }
+  .snap-cell { background: var(--card); padding: 1.2rem 1.1rem; }
+  .snap-label { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); margin-bottom: .4rem; }
+  .snap-val { font-family: var(--serif); font-size: 24px; color: var(--ink); line-height: 1.1; }
+  .snap-val.moss { color: var(--moss); }
+  .snap-val.gold { color: var(--gold); }
+  .snap-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; line-height: 1.4; }
+
+  /* CARDS */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; }
+  .card-label { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); margin-bottom: 5px; }
+  .card-value { font-family: var(--serif); font-size: 22px; color: var(--ink); line-height: 1.1; }
+  .card-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; line-height: 1.4; }
+  .card.moss { border-left: 3px solid var(--moss); } .card.moss .card-value { color: var(--moss); }
+  .card.gold { border-left: 3px solid var(--gold); } .card.gold .card-value { color: #7a5800; }
+  .card.bark { border-left: 3px solid var(--bark-2); } .card.bark .card-value { color: var(--bark); }
+  .card.neutral { border-left: 3px solid var(--border); }
+  .card.red { border-left: 3px solid #d94f4f; } .card.red .card-value { color: var(--red); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: var(--card); }
+  th { font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); padding: 9px 11px; border-bottom: 1px solid var(--border); text-align: left; background: var(--sand); white-space: nowrap; }
+  td { padding: 9px 11px; border-bottom: 1px solid var(--border); color: var(--ink); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr.subject-row { background: #edf3ec; } tr.subject-row td { font-weight: 600; }
+  tr.highlight { background: var(--gold-pale); }
+  tr.fast { background: #f2faf0; }
+  td.muted { color: var(--text-3); font-size: 11.5px; }
+  td.moss { color: var(--moss); font-weight: 600; }
+  td.gold { color: #7a5800; font-weight: 600; }
+  td.red { color: var(--red); font-weight: 600; }
+  td.bark { color: var(--bark-2); font-weight: 600; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 3px; }
+  .badge.leased { background: var(--moss-pale); color: #1a4a18; }
+  .badge.active { background: var(--gold-pale); color: #7a5000; }
+  .badge.subject { background: var(--canopy); color: #fff; }
+  .tag { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 3px; margin: 1px 2px 1px 0; white-space: nowrap; }
+  .tag.good { background: var(--moss-pale); color: #1a4a18; font-weight: 600; }
+  .tag.warn { background: var(--gold-pale); color: #7a5000; }
+  .tag.fast { background: #e0f5d8; color: #1a4a10; font-weight: 600; }
+  .tag.slow { background: var(--red-pale); color: var(--red); }
+  .tag.neutral { background: var(--sand-2); color: var(--text-3); }
+
+  /* CALLOUT */
+  .callout { border-radius: 0 8px 8px 0; padding: 1rem 1.2rem; font-size: 13px; line-height: 1.75; margin-bottom: 1rem; }
+  .callout.moss { background: var(--moss-pale); border: 1px solid #b0d8a8; color: #1a3018; border-left: 4px solid var(--moss); }
+  .callout.gold { background: var(--gold-pale); border: 1px solid #e0c870; color: #4a3000; border-left: 4px solid var(--gold); }
+  .callout.bark { background: #f5f0e8; border: 1px solid #c8b898; color: var(--bark); border-left: 4px solid var(--bark-2); }
+  .callout strong { font-weight: 600; }
+
+  /* FEATURE BOX */
+  .feature-box { background: var(--canopy); border-radius: 10px; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:560px){ .feature-box { grid-template-columns: 1fr; } }
+  .feat-item { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 1rem 1.1rem; }
+  .feat-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--leaf); margin-bottom: .4rem; }
+  .feat-val { font-family: var(--serif); font-size: 18px; color: #fff; margin-bottom: .3rem; }
+  .feat-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+  /* STRATEGY BOX */
+  .strategy-box { background: var(--bark); border-radius: 10px; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media(max-width:560px){ .strategy-box { grid-template-columns: 1fr; } }
+  .strat-col { border-radius: 6px; padding: 1rem 1.1rem; }
+  .strat-col.launch { background: rgba(196,154,60,0.18); border: 1px solid rgba(196,154,60,0.3); }
+  .strat-col.fallback { background: rgba(74,103,65,0.2); border: 1px solid rgba(74,103,65,0.3); }
+  .strat-label { font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; margin-bottom: .5rem; }
+  .strat-label.gold { color: var(--gold-light); }
+  .strat-label.moss { color: #a8d898; }
+  .strat-price { font-family: var(--serif); font-size: 34px; line-height: 1; margin-bottom: .4rem; }
+  .strat-price.gold { color: var(--gold-light); }
+  .strat-price.moss { color: #a8d898; }
+  .strat-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.55; }
+
+  /* CHART */
+  .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; }
+  .chart-container { position: relative; height: 220px; width: 100%; }
+  .chart-legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 11px; color: var(--text-3); margin-bottom: .7rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+  /* VERDICT */
+  .verdict { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--moss); border-radius: 0 10px 10px 0; padding: 1.5rem 1.7rem; }
+  .vp { margin-bottom: 1.2rem; }
+  .vp:last-child { margin-bottom: 0; }
+  .vp-heading { font-family: var(--serif); font-size: 17px; color: var(--canopy); margin-bottom: .3rem; }
+  .vp-body { font-size: 13px; color: var(--text-2); line-height: 1.78; }
+
+  /* INCOME */
+  .income-box { background: var(--canopy); border-radius: 10px; padding: 1.5rem; }
+  .income-title { font-family: var(--serif); font-size: 16px; color: rgba(255,255,255,0.6); margin-bottom: 1rem; font-style: italic; }
+  .income-row { display: flex; justify-content: space-between; align-items: baseline; padding: .6rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13px; gap: 1rem; }
+  .income-row:last-child { border-bottom: none; }
+  .income-label { color: rgba(255,255,255,0.5); }
+  .income-val { font-family: var(--serif); font-size: 20px; color: var(--gold-light); }
+  .income-val.big { font-size: 28px; }
+  .income-val.muted { color: rgba(255,255,255,0.35); font-size: 16px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+  .footer { border-top: 1px solid var(--border); padding: 1.2rem 2rem; font-size: 11px; color: var(--text-3); text-align: center; line-height: 1.8; }
+  .footer strong { color: var(--moss); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-texture"></div>
+  <div class="header-inner">
+    <div class="eyebrow">Verandah Properties · Rental Pricing Analysis · May 1, 2026</div>
+    <h1>613 Yorktown Drive</h1>
+    <div class="header-sub">Leesburg, FL 34748 · 3 bed / 2 bath · 1,305 sq ft · Built 1986</div>
+    <div class="pills">
+      <span class="pill">3 bed / 2 bath</span>
+      <span class="pill">1,305 sq ft</span>
+      <span class="pill">Built 1986</span>
+      <span class="pill feature">Large back deck</span>
+      <span class="pill feature">Tree-canopied yard</span>
+      <span class="pill gold">Show ready</span>
+    </div>
+  </div>
+</div>
+
+<div class="price-strip">
+  <div class="price-strip-inner">
+    <div class="ps-item">
+      <div class="ps-label">Launch price</div>
+      <div class="ps-val">$1,895</div>
+    </div>
+    <div class="ps-div"></div>
+    <div class="ps-item">
+      <div class="ps-label">Floor price</div>
+      <div class="ps-val">$1,825</div>
+    </div>
+    <div class="ps-div"></div>
+    <div class="ps-note">Launch at $1,895 · monitor week one · if limited qualified activity by day 7, reduce to $1,825 and target a lease within 14–21 days</div>
+  </div>
+</div>
+
+<div class="strat-bar">
+  <div class="strat-bar-inner">
+    <strong>Leesburg note:</strong> This is a diverse, non-cookie-cutter market with limited active competition. The week-one test strategy is appropriate here — only one active comp exists, and the subject's outdoor features are a genuine differentiator that the data cannot fully price.
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SNAPSHOT -->
+  <div class="section">
+    <div class="section-label">At a glance</div>
+    <div class="snapshot">
+      <div class="snap-cell">
+        <div class="snap-label">Launch price</div>
+        <div class="snap-val gold">$1,895</div>
+        <div class="snap-sub">Matches 3-day Katelin Cir lease · week-one test</div>
+      </div>
+      <div class="snap-cell">
+        <div class="snap-label">Annual gross (at $1,895)</div>
+        <div class="snap-val moss">$22,740</div>
+        <div class="snap-sub">$1,895 × 12 months</div>
+      </div>
+      <div class="snap-cell">
+        <div class="snap-label">Annual gross (at $1,825)</div>
+        <div class="snap-val moss">$21,900</div>
+        <div class="snap-sub">$1,825 × 12 months · floor</div>
+      </div>
+      <div class="snap-cell">
+        <div class="snap-label">Target lease timeline</div>
+        <div class="snap-val">14–21 days</div>
+        <div class="snap-sub">Achievable at right price · market SP/LP avg 100.3%</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- MARKET CONTEXT -->
+  <div class="section">
+    <div class="section-label">Market context — Leesburg rental landscape</div>
+
+    <div class="callout bark" style="margin-bottom:1.2rem;">
+      <strong>Leesburg is a genuinely diverse market.</strong> Unlike master-planned communities where every home is comparable, Leesburg's rental stock spans decades — from 1956 to 2023 — with meaningful differences in size, condition, and character. Comps here are directional, not prescriptive. What this market does tell us clearly is that well-priced properties are leasing at or above asking price, and the subject's outdoor features — deck and tree canopy — are distinctive in a market where most comparable rentals lack them.
+    </div>
+
+    <div class="cards">
+      <div class="card moss">
+        <div class="card-label">Leased comps SP/LP avg</div>
+        <div class="card-value">100.3%</div>
+        <div class="card-sub">Market is leasing at or above ask · one comp leased above asking · well-priced properties are moving</div>
+      </div>
+      <div class="card gold">
+        <div class="card-label">Leased price range</div>
+        <div class="card-value">$1,500–$2,100</div>
+        <div class="card-sub">Wide range reflects Leesburg's diversity · 3/2 comps cluster $1,825–$1,900</div>
+      </div>
+      <div class="card bark">
+        <div class="card-label">Active competition</div>
+        <div class="card-value">1 listing</div>
+        <div class="card-sub">Only one active 3/2 at $2,000 · 17 days · no pressure from crowded supply</div>
+      </div>
+      <div class="card neutral">
+        <div class="card-label">Fastest lease in dataset</div>
+        <div class="card-value">3 days</div>
+        <div class="card-sub">Katelin Cir · 3/2 · $1,895 · brand new 2023 · leased in 3 days at 100%</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- FEATURE PREMIUM -->
+  <div class="section">
+    <div class="section-label">Subject property features — what the data can't fully price</div>
+
+    <div class="callout moss" style="margin-bottom:1rem;">
+      <strong>The deck and yard are genuine differentiators in this market.</strong> None of the comparable properties in this dataset are noted for premium outdoor living features. A large back deck with a tree-canopied yard in a show-ready home is the kind of detail that attracts quality, longer-stay tenants who will treat the property with care. In a diverse market like Leesburg where tenants are comparing very different properties, this is a tangible reason to choose 613 Yorktown over alternatives — and it supports pricing at the top of the defensible range.
+    </div>
+
+    <div class="feature-box">
+      <div class="feat-item">
+        <div class="feat-label">Outdoor feature</div>
+        <div class="feat-val">Large back deck</div>
+        <div class="feat-desc">Rare in the comparable set · extends usable living space · strong tenant appeal · supports $1,895 positioning</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-label">Setting</div>
+        <div class="feat-val">Tree-canopied yard</div>
+        <div class="feat-desc">Distinctive character · shade and privacy · not replicable · a genuine reason tenants choose this property</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-label">Condition</div>
+        <div class="feat-val">Show ready</div>
+        <div class="feat-desc">Move-in ready presentation signals a quality owner · attracts quality tenants · faster lease at full price</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-label">Competition pressure</div>
+        <div class="feat-val">Very low</div>
+        <div class="feat-desc">One active listing at $2,000 — subject at $1,895 creates clear value separation without underselling</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- COMP TABLE -->
+  <div class="section">
+    <div class="section-label">Full comparable analysis — Leesburg area · May 1, 2026</div>
+
+    <div class="callout gold" style="margin-bottom:1rem;">
+      <strong>Reading these comps:</strong> Leesburg's diversity means no comp is a perfect match. The most relevant 3/2 confirmed leases — Goldie St ($1,825) and Richey Rd ($1,900) — bracket the subject's range cleanly. Katelin Cir ($1,895 in 3 days) is newer and larger but confirms active demand at exactly the launch price. The outliers (Fern Cir at $2,100, Woodlyn at $1,500) are noted but carry less weight for the subject.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Bed/Bath</th>
+            <th>Sq Ft</th>
+            <th>Yr</th>
+            <th>Notes</th>
+            <th>Ask</th>
+            <th>Leased</th>
+            <th>SP/LP</th>
+            <th>DOM</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="subject-row">
+            <td>613 Yorktown Dr ★</td>
+            <td>3 / 2</td>
+            <td>1,305</td>
+            <td class="muted">1986</td>
+            <td><span class="tag good">Deck</span> <span class="tag good">Tree yard</span> <span class="tag good">Show ready</span></td>
+            <td class="gold">$1,895</td>
+            <td class="muted">—</td>
+            <td class="muted">—</td>
+            <td class="muted">—</td>
+            <td><span class="badge subject">Subject</span></td>
+          </tr>
+          <tr class="highlight">
+            <td>220 Goldie St</td>
+            <td>3 / 2</td>
+            <td>1,290</td>
+            <td class="muted">2005</td>
+            <td class="muted">Sleepy Hollow · similar size · newer · floor reference</td>
+            <td class="muted">$1,825</td>
+            <td class="moss">$1,825</td>
+            <td class="moss">100%</td>
+            <td class="red">94</td>
+            <td><span class="badge leased">Leased</span></td>
+          </tr>
+          <tr class="highlight">
+            <td>431 Richey Rd</td>
+            <td>3 / 2</td>
+            <td>1,400</td>
+            <td class="muted">1962</td>
+            <td class="muted">95 sq ft larger · older · 2 full baths · ceiling reference</td>
+            <td class="muted">$1,900</td>
+            <td class="moss">$1,900</td>
+            <td class="moss">100%</td>
+            <td class="moss">18</td>
+            <td><span class="badge leased">Leased</span></td>
+          </tr>
+          <tr class="fast">
+            <td>32036 Katelin Cir</td>
+            <td>3 / 2</td>
+            <td>1,504</td>
+            <td class="muted">2023</td>
+            <td><span class="tag fast">3 days</span> Brand new · 199 sq ft larger · confirms $1,895 demand</td>
+            <td class="muted">$1,895</td>
+            <td class="moss">$1,895</td>
+            <td class="moss">100%</td>
+            <td class="moss">3</td>
+            <td><span class="badge leased">Leased</span></td>
+          </tr>
+          <tr>
+            <td>1607 S Lakeview Ave</td>
+            <td>3 / 1</td>
+            <td>1,376</td>
+            <td class="muted">1956</td>
+            <td><span class="tag fast">5 days</span> Only 1 bath · older · fast mover at right price</td>
+            <td class="muted">$1,750</td>
+            <td class="muted">$1,750</td>
+            <td class="moss">100%</td>
+            <td class="moss">5</td>
+            <td><span class="badge leased">Leased</span></td>
+          </tr>
+          <tr>
+            <td>6808 Fern Cir</td>
+            <td>3 / 2</td>
+            <td>1,404</td>
+            <td class="muted">1965</td>
+            <td><span class="tag slow">74 days</span> $2,100 achieved but slow · likely some distinguishing feature · not a reliable benchmark for the subject</td>
+            <td class="muted">$2,100</td>
+            <td class="muted">$2,100</td>
+            <td class="moss">100%</td>
+            <td class="red">74</td>
+            <td><span class="badge leased">Leased</span></td>
+          </tr>
+          <tr>
+            <td>1606 Woodlyn Dr</td>
+            <td>4 / 1</td>
+            <td>1,318</td>
+            <td class="muted">1960</td>
+            <td class="muted">4 beds · only 1 bath · leased above ask · different product</td>
+            <td class="muted">$1,475</td>
+            <td class="muted">$1,500</td>
+            <td class="bark">101.7%</td>
+            <td class="muted">29</td>
+            <td><span class="badge leased">Leased</span></td>
+          </tr>
+          <tr>
+            <td>2617 Athens Dr</td>
+            <td>3 / 2</td>
+            <td>1,511</td>
+            <td class="muted">2005</td>
+            <td class="muted">Sleepy Hollow · newer · larger · asking $2,000 · 17 days — not yet leased</td>
+            <td class="gold">$2,000</td>
+            <td class="muted">—</td>
+            <td class="muted">—</td>
+            <td class="muted">17</td>
+            <td><span class="badge active">Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:11px;color:var(--text-3);margin-top:.5rem;">Benchmark comps highlighted: gold = floor reference (Goldie St $1,825) and ceiling reference (Richey Rd $1,900). Green = fast-leasing comps priced correctly. Fern Cir excluded as primary benchmark — the $2,100 outcome after 74 days is an outlier in the dataset and not directly comparable to the subject.</p>
+  </div>
+
+  <hr>
+
+  <!-- WEEK ONE STRATEGY -->
+  <div class="section">
+    <div class="section-label">Week-one monitoring strategy</div>
+    <div class="strategy-box">
+      <div class="strat-col launch">
+        <div class="strat-label gold">Launch — days 1 through 7</div>
+        <div class="strat-price gold">$1,895</div>
+        <div class="strat-desc">List at $1,895 and monitor qualified showing activity, inquiries, and application interest closely. This matches the price at which Katelin Cir leased in 3 days — active demand exists here. With limited competition and a distinctive property, week one will tell us quickly whether the market supports this number. If interest is strong, hold.</div>
+      </div>
+      <div class="strat-col fallback">
+        <div class="strat-label moss">Adjust — day 7 or 8 if needed</div>
+        <div class="strat-price moss">$1,825</div>
+        <div class="strat-desc">If week one produces limited qualified showings or no application activity, a reduction to $1,825 matches the only confirmed 3/2 lease in Sleepy Hollow — Goldie St leased at exactly this price. At $1,825 the property is well-priced, the deck and yard become an outright advantage, and the 14–21 day goal is very achievable.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- CHART -->
+  <div class="section">
+    <div class="section-label">Leased comp pricing — visualized</div>
+    <div class="chart-box">
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:#4A6741;"></span>Leased — 3/2 comps (primary)</span>
+        <span><span class="legend-dot" style="background:#C49A3C;"></span>Subject launch price</span>
+        <span><span class="legend-dot" style="background:#8a7a65;"></span>Other leased comps</span>
+        <span><span class="legend-dot" style="background:#bbb;"></span>Active — not yet leased</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="compChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- INCOME -->
+  <div class="section">
+    <div class="section-label">Annual income projection</div>
+    <div class="income-box">
+      <div class="income-title">Projected gross rental income · 613 Yorktown Drive</div>
+      <div class="income-row">
+        <span class="income-label">Monthly rent — launch at $1,895</span>
+        <span class="income-val">$1,895</span>
+      </div>
+      <div class="income-row">
+        <span class="income-label">Annual gross — at $1,895</span>
+        <span class="income-val">$22,740</span>
+      </div>
+      <div class="income-row">
+        <span class="income-label">Monthly rent — floor at $1,825</span>
+        <span class="income-val muted">$1,825</span>
+      </div>
+      <div class="income-row">
+        <span class="income-label">Annual gross — at $1,825</span>
+        <span class="income-val muted">$21,900</span>
+      </div>
+      <div class="income-row">
+        <span class="income-label">Annual income range</span>
+        <span class="income-val big">$21,900 – $22,740</span>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- VERDICT -->
+  <div class="section">
+    <div class="section-label">Summary of findings</div>
+    <div class="verdict">
+      <div class="vp">
+        <div class="vp-heading">A healthy market with room to test — and good reason to</div>
+        <div class="vp-body">Every confirmed lease in this dataset closed at or above asking price, with an average SP/LP of 100.3%. This is not a market where owners need to discount. Leesburg's diversity means there is no single "right" price for this product — the market rewards well-presented properties that are priced thoughtfully. With only one active competing listing (at $2,000, not yet leased), the subject has space to test the ceiling without significant risk of being ignored.</div>
+      </div>
+      <div class="vp">
+        <div class="vp-heading">$1,895 is the right launch — it is supported by data and the week-one test is low risk</div>
+        <div class="vp-body">Katelin Cir — a brand-new 2023 build, 199 sq ft larger — leased at exactly $1,895 in 3 days. That confirms active demand at this price in the current market. Richey Rd, a 3/2 with 95 additional square feet, leased at $1,900 in 18 days. The subject is smaller but brings a distinctive outdoor package — large deck, tree-canopied yard, show-ready — that none of the comparables offer. $1,895 is not a stretch; it is a disciplined test with a clear fallback if needed.</div>
+      </div>
+      <div class="vp">
+        <div class="vp-heading">$1,825 is the floor — not a starting point</div>
+        <div class="vp-body">Goldie St in Sleepy Hollow — a 3/2 at 1,290 sq ft, similar size to the subject, newer build — leased at $1,825 after 94 days. That extended DOM reflects a property that was likely overpriced initially and took time to find its level. At $1,825, the subject has a genuine advantage: its outdoor features, yard character, and show-ready condition make it a more compelling option than a standard 2005 build at the same price. If week one requires a reduction, $1,825 should perform well within the 14–21 day window.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>Verandah Properties, LLC</strong> · Pamela Syvertson, Broker · (407) 855-0331 · VerandahProperties.com<br>
+  This is an opinion of value and comparative market analysis as of May 1, 2026. It should not be considered an appraisal.<br>
+  Data sourced from Stellar MLS (© My Florida Regional MLS DBA Stellar MLS) as of May 1, 2026.
+</div>
+
+<script>
+const ctx = document.getElementById('compChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: [
+      'Woodlyn Dr\n4/1 · 1960\n(leased · 29d)',
+      'Lakeview Ave\n3/1 · 1956\n(leased · 5d)',
+      'Goldie St\n3/2 · 2005\n(leased · 94d)',
+      '613 Yorktown\n3/2 · 1986\n(subject)',
+      'Katelin Cir\n3/2 · 2023\n(leased · 3d)',
+      'Richey Rd\n3/2 · 1962\n(leased · 18d)',
+      'Athens Dr\n3/2 · 2005\n(active · 17d)',
+      'Fern Cir\n3/2 · 1965\n(leased · 74d)'
+    ],
+    datasets: [{
+      label: 'Price',
+      data: [1500, 1750, 1825, 1895, 1895, 1900, 2000, 2100],
+      backgroundColor: ['#8a7a65','#8a7a65','#4A6741','#C49A3C','#4A6741','#4A6741','#bbb','#8a7a65'],
+      borderRadius: 5,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.y.toLocaleString() } }
+    },
+    scales: {
+      y: {
+        min: 1400, max: 2200,
+        ticks: { callback: v => '$' + v.toLocaleString(), color: '#8a7a65', font: { size: 11 } },
+        grid: { color: 'rgba(0,0,0,0.04)' }
+      },
+      x: { ticks: { color: '#8a7a65', font: { size: 9 } }, grid: { display: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
